@@ -3,6 +3,7 @@ import bcrypt from 'bcrypt'
 import jwt from 'jsonwebtoken'
 import { jwtGeneration } from '../utils/jwtgenration.js'
 import { validationResult } from 'express-validator'
+import { verifyRefresh } from '../middleware/authMiddleware.js'
 
 export const getUser = async (req, res) => {
   try {
@@ -17,9 +18,7 @@ export const register = async (req, res) => {
   const { name, email, phone, password, role } = req.body
   const errors = validationResult(req)
   if (!errors.isEmpty()) {
-    return res
-      .status(400)
-      .json({ status: 400, errors: errors.array() })
+    return res.status(400).json({ status: 400, errors: errors.array() })
   }
   try {
     const userExit = await User.findOne({
@@ -63,7 +62,7 @@ export const login = async (req, res) => {
         .json({ status: 400, message: 'Invalid credentials' })
     }
 
-    const accessToken = jwtGeneration({ userId: user._id })
+    const { accessToken, refreshToken } = jwtGeneration({ email: user.email })
     await res.cookie('accessToken', accessToken, {
       httpOnly: true,
       secure: true,
@@ -79,9 +78,30 @@ export const login = async (req, res) => {
         email: user.email,
         role: user.role,
         accessToken,
+        refreshToken,
       },
     })
   } catch (error) {
     return res.status(500).json({ status: 500, message: error.message })
   }
+}
+
+export const refreshToken = async (req, res) => {
+  const { email, refreshToken } = req.body
+  const isValid = verifyRefresh(email, refreshToken)
+  if (!email) {
+    return res.status(400).json({ success: false, error: 'Email is required' })
+  }
+  if (!isValid) {
+    return res
+      .status(401)
+      .json({ success: false, error: 'Invalid token, try login again' })
+  }
+  const { accessToken } = jwtGeneration({ email })
+  await res.cookie('accessToken', accessToken, {
+    httpOnly: true,
+    secure: true,
+    maxAge: 3600000,
+  })
+  return res.status(200).json({ success: true, accessToken })
 }
