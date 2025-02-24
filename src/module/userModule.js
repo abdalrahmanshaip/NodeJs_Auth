@@ -25,6 +25,12 @@ const userSchema = new Schema(
       type: String,
       enum: ['user', 'admin'],
     },
+    resetPasswordToken: {
+      type: String,
+    },
+    resetPasswordExpires: {
+      type: Date,
+    },
   },
   { timeseries: true }
 )
