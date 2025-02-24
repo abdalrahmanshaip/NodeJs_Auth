@@ -105,3 +105,8 @@ export const refreshToken = async (req, res) => {
   })
   return res.status(200).json({ success: true, accessToken })
 }
+
+export const logout = async (req, res) => {
+  res.clearCookie('accessToken')
+  return res.status(200).json({ success: true, message: 'Logout successfully' })
+}
