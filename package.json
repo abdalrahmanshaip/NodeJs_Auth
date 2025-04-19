@@ -5,7 +5,8 @@
   "main": "index.js",
   "scripts": {
     "auth": "echo \"Error: no auth specified\" && exit 1",
-    "dev": "nodemon src/index.js"
+    "dev": "nodemon src/index.js",
+    "start": "node src/index"
   },
   "keywords": [],
   "author": "",
